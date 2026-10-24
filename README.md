@@ -1,62 +1,66 @@
-# Pothole & Defect Detector
+# 🚧 Pothole & Defect Detector
 
-## Project Overview
-Pothole & Defect Detector is an AI-powered computer vision application that detects potholes in road images. It displays bounding boxes, confidence scores, estimated defect coverage, and severity levels.
+An AI-powered computer vision application that detects potholes in road images using YOLOv8. The application displays bounding boxes, confidence scores, defect coverage, and an estimated severity level.
 
-## Technologies Used
+## ✨ Features
+
+- Upload road images in JPG, JPEG, PNG, or WebP format.
+- Detect potholes using a trained YOLOv8 model.
+- Display annotated images with detection boxes.
+- Show confidence scores for detected potholes.
+- Estimate severity based on the percentage of image area covered by predicted pothole boxes.
+
+## 🛠️ Tech Stack
+
 - Python
-- YOLOv8 (Ultralytics)
-- Gradio
+- YOLOv8 and Ultralytics
+- Streamlit
 - Pillow
+- Hugging Face Hub
 
-## Model Training
-The model was fine-tuned from the pretrained YOLOv8n model using a labeled pothole dataset.
+## ⚙️ Severity Estimation
 
-### Validation Metrics
-| Metric | Score |
-|---|---:|
-| Precision | 79.0% |
-| Recall | 67.3% |
-| mAP@50 | 77.1% |
-| mAP@50–95 | 48.8% |
+| Image area covered | Estimated severity |
+|---|---|
+| No potholes detected | NONE |
+| Up to 3% | LOW |
+| Above 3% to 10% | MEDIUM |
+| Above 10% to 20% | HIGH |
+| Above 20% | CRITICAL |
 
-These metrics are from validation on 133 images containing 330 labeled instances.
+*Severity is an image-based estimate, not a professional road safety assessment.*
 
-## Severity Classification
-- **NONE:** No potholes detected
-- **LOW:** Coverage up to 3%
-- **MEDIUM:** Coverage above 3% and up to 10%
-- **HIGH:** Coverage above 10% and up to 20%
-- **CRITICAL:** Coverage above 20%
+## 🚀 Run Locally
 
-## How It Works
-1. Upload a road image.
-2. The YOLOv8 model detects potholes.
-3. Bounding boxes and confidence scores are displayed.
-4. The application estimates defect coverage and assigns a severity level.
+1. Clone this repository:
 
-## Limitations
-- Detection accuracy depends on image quality, lighting, and pothole appearance.
-- Some potholes may be missed or incorrectly detected.
-- Bounding-box coverage is an estimate and is not a direct measurement of damaged road surface.
-- This application is a prototype and should not replace professional road inspections.
+   ```bash
+   git clone https://github.com/AchuriNeelima/Pothole-Defect-Detector.git
+   cd Pothole-Defect-Detector
+   ```
 
-## How to Run Locally
-Install the dependencies:
+2. Install the dependencies:
 
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Run the application:
+3. Run the application:
 
-```bash
-python app.py
-```
+   ```bash
+   streamlit run app.py
+   ```
 
-Ensure that `best.pt` is present in the same folder as `app.py`.
+The application downloads the trained `best.pt` model from the Hugging Face model repository when needed.
 
-## Future Improvements
-- Improve detection using more diverse road images.
-- Add more test examples and failure-case analysis.
-- Deploy the application using Hugging Face Spaces.
+## 🤖 Trained Model
+
+[View the Pothole Defect Detector model on Hugging Face](https://huggingface.co/neelima03/pothole-defect-detector)
+
+## 📊 Model Evaluation
+
+The trained model achieved the following validation metrics:
+
+- Precision: 79.0%
+- Recall: 67.3%
+- mAP@50: 77
