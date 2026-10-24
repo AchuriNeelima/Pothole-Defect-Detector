@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Training data and generated outputs
+datasets/
+runs/
+pothole_dataset/
+*.zip
+
+# Secrets
+.env
+.env.*
+
+# Local editor and operating system files
+.vscode/
+.DS_Store
+Thumbs.db
