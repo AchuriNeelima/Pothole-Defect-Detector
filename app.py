@@ -1,29 +1,58 @@
 
-import gradio as gr
+import streamlit as st
 from ultralytics import YOLO
+from huggingface_hub import hf_hub_download
 from PIL import Image
 
-MODEL_PATH = "best.pt"
+st.set_page_config(
+    page_title="Pothole & Defect Detector",
+    page_icon="🚧",
+    layout="wide"
+)
 
-model = YOLO(MODEL_PATH)
+
+@st.cache_resource
+def load_model():
+    model_path = hf_hub_download(
+        repo_id="neelima03/pothole-defect-detector",
+        filename="best.pt",
+        repo_type="model"
+    )
+    return YOLO(model_path)
 
 
-def detect_potholes(image):
-    if image is None:
-        return None, "Please upload a road image."
+st.title("🚧 Pothole & Defect Detector")
+st.write(
+    "Upload a road image to detect potholes, "
+    "view confidence scores, and estimate severity."
+)
 
-    result = model.predict(image, conf=0.25, verbose=False)[0]
-    annotated_image = Image.fromarray(result.plot()[..., ::-1])
+uploaded_file = st.file_uploader(
+    "Upload a road image",
+    type=["jpg", "jpeg", "png", "webp"]
+)
+
+if uploaded_file is not None:
+    image = Image.open(uploaded_file).convert("RGB")
+
+    with st.spinner("Detecting potholes..."):
+        model = load_model()
+        result = model.predict(
+            image, conf=0.25, verbose=False
+        )[0]
+        annotated = Image.fromarray(
+            result.plot()[..., ::-1]
+        )
 
     height, width = result.orig_shape
-    total_image_area = height * width
-    total_defect_area = 0
+    total_area = height * width
+    defect_area = 0
 
     for box in result.boxes.xyxy.cpu().numpy():
         x1, y1, x2, y2 = box
-        total_defect_area += (x2 - x1) * (y2 - y1)
+        defect_area += max(0, x2 - x1) * max(0, y2 - y1)
 
-    coverage = total_defect_area / total_image_area * 100
+    coverage = defect_area / total_area * 100
     count = len(result.boxes)
 
     if count == 0:
@@ -37,36 +66,27 @@ def detect_potholes(image):
     else:
         severity = "CRITICAL"
 
-    report = (
-        f"Detected potholes: {count}\n"
-        f"Defect coverage: {coverage:.2f}%\n"
-        f"Severity: {severity}\n\n"
-    )
+    col1, col2 = st.columns(2)
 
-    if count:
-        report += "Confidence scores:\n"
-        for i, box in enumerate(result.boxes, start=1):
-            confidence = float(box.conf[0].cpu()) * 100
-            report += f"Pothole {i}: {confidence:.2f}%\n"
-    else:
-        report += "No potholes detected."
+    with col1:
+        st.subheader("Detection Result")
+        st.image(annotated, use_container_width=True)
 
-    return annotated_image, report
+    with col2:
+        st.subheader("Analysis Report")
+        st.metric("Potholes detected", count)
+        st.metric("Defect coverage", f"{coverage:.2f}%")
+        st.metric("Estimated severity", severity)
 
+        if count:
+            st.write("**Confidence scores**")
+            for i, box in enumerate(result.boxes, start=1):
+                confidence = float(box.conf[0].cpu()) * 100
+                st.write(f"Pothole {i}: {confidence:.2f}%")
+        else:
+            st.info("No potholes detected.")
 
-demo = gr.Interface(
-    fn=detect_potholes,
-    inputs=gr.Image(type="pil", label="Upload a road image"),
-    outputs=[
-        gr.Image(type="pil", label="Detection result"),
-        gr.Textbox(label="Pothole analysis", lines=8),
-    ],
-    title="Pothole & Defect Detector",
-    description=(
-        "Upload a road image to detect potholes, "
-        "view confidence scores, and estimate severity."
-    ),
+st.caption(
+    "Severity is an image-area estimate, not a professional "
+    "road safety assessment. Predictions may miss defects."
 )
-
-if __name__ == "__main__":
-    demo.launch()
