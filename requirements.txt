@@ -2,3 +2,4 @@ streamlit
 ultralytics
 huggingface_hub
 Pillow
+opencv-python-headless==4.12.0.88
